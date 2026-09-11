@@ -281,9 +281,7 @@
   "quickActions": [
     { "id": "qa-1", "label": "Add Lead", "icon": "user-plus", "module": "sales-crm" },
     { "id": "qa-2", "label": "Create Case", "icon": "briefcase", "module": "case-management" },
-    { "id": "qa-3", "label": "Create Quotation", "icon": "file-text", "module": "sales-crm" },
-    { "id": "qa-4", "label": "Assign Lawyer", "icon": "scale", "module": "case-management" },
-    { "id": "qa-5", "label": "Add Partner", "icon": "handshake", "module": "partners" }
+    { "id": "qa-3", "label": "Create Quotation", "icon": "file-text", "module": "sales-crm" }
   ],
   "user": {
     "name": "Anurag Bhatia",

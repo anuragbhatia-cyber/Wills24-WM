@@ -159,7 +159,7 @@ export function LawyerDetailPage({ lawyer, cases, onBack, onViewCase }: LawyerDe
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 font-[family-name:var(--font-mono,'IBM_Plex_Mono',ui-monospace,monospace)]">
-                          {cs.id.replace('W24-CASE-', '')}
+                          {cs.id.replace('W24-CASE-', 'CASE-')}
                         </span>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCfg.bg} ${statusCfg.text}`}>
                           {statusCfg.label}

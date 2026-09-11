@@ -1162,10 +1162,9 @@ export function CustomerList({
       {/* ── Table ────────────────────────────────────────────────────────── */}
       <div className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-xs dark:shadow-none overflow-hidden">
           {/* Table header — desktop */}
-          <div className="hidden lg:grid grid-cols-[100px_minmax(180px,2fr)_minmax(120px,1fr)_minmax(140px,1.2fr)_90px_100px_80px_48px] gap-2 px-5 py-3 bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-800 text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 sticky top-0 z-10">
+          <div className="hidden lg:grid grid-cols-[100px_minmax(180px,2fr)_minmax(140px,1.2fr)_90px_100px_80px_48px] gap-2 px-5 py-3 bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-800 text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 sticky top-0 z-10">
             <span>ID</span>
             <SortHeader label="Customer" sortKey="name" current={sortKey} dir={sortDir} onSort={toggleSort} />
-            <span>Wealth Manager</span>
             <span>Services</span>
             <SortHeader label="Cases" sortKey="activeCases" current={sortKey} dir={sortDir} onSort={toggleSort} />
             <SortHeader label="Payments" sortKey="totalPayments" current={sortKey} dir={sortDir} onSort={toggleSort} />
@@ -1223,7 +1222,7 @@ export function CustomerList({
                 <div key={customer.id}>
                   {/* ── Desktop row ─────────────────────────────────── */}
                   <div
-                    className={`hidden lg:grid grid-cols-[100px_minmax(180px,2fr)_minmax(120px,1fr)_minmax(140px,1.2fr)_90px_100px_80px_48px] gap-2 px-5 py-3.5 items-center hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors cursor-pointer ${
+                    className={`hidden lg:grid grid-cols-[100px_minmax(180px,2fr)_minmax(140px,1.2fr)_90px_100px_80px_48px] gap-2 px-5 py-3.5 items-center hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors cursor-pointer ${
                       !isLast && !isExpanded ? 'border-b border-neutral-100 dark:border-neutral-800/60' : ''
                     } ${isExpanded ? 'bg-neutral-50 dark:bg-neutral-800/20' : ''}`}
                     onClick={() => onView?.(customer.id)}
@@ -1255,13 +1254,6 @@ export function CustomerList({
                           )}
                         </div>
                       </div>
-                    </div>
-
-                    {/* Wealth Manager */}
-                    <div className="min-w-0">
-                      <p className="text-xs text-neutral-600 dark:text-neutral-300 truncate">
-                        {customer.wealthManagerName}
-                      </p>
                     </div>
 
                     {/* Services */}
