@@ -67,6 +67,7 @@ export interface Customer {
   status: CustomerStatus
   convertedAt: string
   notes: string
+  documentAccessGranted: boolean
 }
 
 // ---------------------------------------------------------------------------

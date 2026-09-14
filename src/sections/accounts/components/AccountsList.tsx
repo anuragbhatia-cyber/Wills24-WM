@@ -731,7 +731,7 @@ export function AccountsList({
                           {effectiveStatus === 'payment-received' && (
                             <MenuItem icon={<Receipt size={13} />} label="Send Invoice" onClick={() => openSendInvoiceModal(entry)} accent />
                           )}
-                          {(effectiveStatus === 'payment-received' || effectiveStatus === 'invoice-sent') && (
+                          {effectiveStatus === 'invoice-sent' && (
                             <>
                               <div className="my-1 border-t border-neutral-100 dark:border-neutral-700" />
                               <MenuItem icon={<UserCheck size={13} />} label="Convert to Customer" onClick={() => { onConvertToCustomer?.(entry.id); setOpenMenu(null) }} highlight />

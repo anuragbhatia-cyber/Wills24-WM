@@ -321,7 +321,7 @@ export function CustomerDetail({
             {activeTab === 'profile' && <ProfileTab customer={customer} />}
             {activeTab === 'services' && <ServicesTab services={services} onViewCase={onViewCase} />}
             {activeTab === 'cases' && <CasesTab cases={cases} onViewCase={onViewCase} />}
-            {activeTab === 'documents' && <DocumentsTab documents={documents} onDownload={onDownloadDocument} />}
+            {activeTab === 'documents' && <DocumentsTab documents={documents} onDownload={onDownloadDocument} accessGranted={customer.documentAccessGranted} />}
             {activeTab === 'payments' && <PaymentsTab payments={payments} />}
           </div>
 
@@ -667,7 +667,10 @@ function CasesTab({ cases, onViewCase }: { cases: CustomerCase[]; onViewCase?: (
 
 // ── Documents Tab ───────────────────────────────────────────────────────────
 
-function DocumentsTab({ documents, onDownload }: { documents: CustomerDocument[]; onDownload?: (docId: string) => void }) {
+function DocumentsTab({ documents, onDownload, accessGranted }: { documents: CustomerDocument[]; onDownload?: (docId: string) => void; accessGranted: boolean }) {
+  if (!accessGranted) {
+    return <EmptyState icon={<FileText size={32} />} title="Access not granted" description="Documents are visible only after the customer grants document access to their wealth manager." />
+  }
   if (documents.length === 0) {
     return <EmptyState icon={<FileText size={32} />} title="No documents" description="No documents have been generated for this customer." />
   }

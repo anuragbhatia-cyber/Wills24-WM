@@ -41,7 +41,8 @@
       "pendingAmount": 0,
       "status": "active",
       "convertedAt": "2026-04-05T12:00:00Z",
-      "notes": "Converted after full NEFT payment. Succession certificate case in progress."
+      "notes": "Converted after full NEFT payment. Succession certificate case in progress.",
+      "documentAccessGranted": true
     },
     {
       "id": "WCUS-00002",
@@ -66,7 +67,8 @@
       "pendingAmount": 0,
       "status": "active",
       "convertedAt": "2026-03-28T15:00:00Z",
-      "notes": "Two cases — Will completed, Trust in progress. Partial refund of ₹50,000 for Trust Drafting was approved."
+      "notes": "Two cases — Will completed, Trust in progress. Partial refund of ₹50,000 for Trust Drafting was approved.",
+      "documentAccessGranted": false
     },
     {
       "id": "WCUS-00003",
@@ -91,7 +93,8 @@
       "pendingAmount": 0,
       "status": "active",
       "convertedAt": "2026-03-22T11:00:00Z",
-      "notes": "Simple will completed and delivered. No further services requested."
+      "notes": "Simple will completed and delivered. No further services requested.",
+      "documentAccessGranted": true
     },
     {
       "id": "WCUS-00004",
@@ -116,7 +119,8 @@
       "pendingAmount": 35400,
       "status": "active",
       "convertedAt": "2026-02-15T10:00:00Z",
-      "notes": "High-value client. Complex estate — multiple trusts, advanced will with codicils. Referred two additional HNI prospects."
+      "notes": "High-value client. Complex estate — multiple trusts, advanced will with codicils. Referred two additional HNI prospects.",
+      "documentAccessGranted": true
     },
     {
       "id": "WCUS-00005",
@@ -141,7 +145,8 @@
       "pendingAmount": 0,
       "status": "active",
       "convertedAt": "2026-03-10T14:00:00Z",
-      "notes": "Medical professional with significant estate. Will requires special medical directives and healthcare proxy clauses."
+      "notes": "Medical professional with significant estate. Will requires special medical directives and healthcare proxy clauses.",
+      "documentAccessGranted": false
     },
     {
       "id": "WCUS-00006",
@@ -166,7 +171,8 @@
       "pendingAmount": 0,
       "status": "inactive",
       "convertedAt": "2026-01-20T09:00:00Z",
-      "notes": "Will completed and delivered in January. Client expressed interest in Trust services — follow-up scheduled for May."
+      "notes": "Will completed and delivered in January. Client expressed interest in Trust services — follow-up scheduled for May.",
+      "documentAccessGranted": true
     }
   ],
   "customerServices": [

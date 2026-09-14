@@ -11,7 +11,6 @@ import {
   Eye,
   Pencil,
   MessageSquarePlus,
-  ArrowRightLeft,
   ChevronDown,
   MoreHorizontal,
   Phone,
@@ -175,7 +174,6 @@ export function LeadsList({
   onImportLeads,
   onExportLeads,
   onAddFollowUp,
-  onAssignToAccounts,
 }: SalesCRMProps) {
   const [activeTab, setActiveTab] = useState<'all' | LeadStatus>('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -825,7 +823,6 @@ export function LeadsList({
                 onDelete={() => openDeleteModal(lead)}
                 onFollowUp={() => openFollowUpModal(lead)}
                 onSendQuotation={() => openSendQuotationModal(lead)}
-                onAssignToAccounts={() => onAssignToAccounts?.(lead.id)}
               />
             ))}
           </div>
@@ -1154,7 +1151,6 @@ interface LeadRowProps {
   onDelete?: () => void
   onFollowUp?: () => void
   onSendQuotation?: () => void
-  onAssignToAccounts?: () => void
 }
 
 function LeadRow({
@@ -1169,7 +1165,6 @@ function LeadRow({
   onDelete,
   onFollowUp,
   onSendQuotation,
-  onAssignToAccounts,
 }: LeadRowProps) {
   const status = STATUS_CONFIG[lead.status]
   const sourceColor = SOURCE_COLORS[lead.source] ?? 'bg-neutral-100 text-neutral-600'
@@ -1382,11 +1377,6 @@ function LeadRow({
                   icon: Send,
                   label: 'Send Quotation',
                   action: onSendQuotation,
-                },
-                {
-                  icon: ArrowRightLeft,
-                  label: 'Assign to Accounts',
-                  action: onAssignToAccounts,
                 },
                 {
                   icon: Trash2,

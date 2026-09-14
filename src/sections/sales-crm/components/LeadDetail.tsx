@@ -4,7 +4,6 @@ import {
   Pencil,
   MessageSquarePlus,
   FileText,
-  ArrowRightLeft,
   Phone,
   Mail,
   MapPin,
@@ -399,17 +398,10 @@ export function LeadDetail({
             </button>
             <button
               onClick={() => onCreateQuotation?.(lead.id)}
-              className="flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-[7px] text-[12px] font-medium text-neutral-600 transition-all hover:border-neutral-300 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:border-neutral-600"
+              className="flex items-center gap-1.5 rounded-lg bg-yellow-500 px-3 py-[7px] text-[12px] font-semibold text-white shadow-sm transition-all hover:bg-yellow-500 hover:shadow-md active:scale-[0.98]"
             >
               <FileText size={12} strokeWidth={2} />
               Add Quotation
-            </button>
-            <button
-              onClick={() => onAssignToAccounts?.(lead.id)}
-              className="flex items-center gap-1.5 rounded-lg bg-yellow-500 px-3 py-[7px] text-[12px] font-semibold text-white shadow-sm transition-all hover:bg-yellow-500 hover:shadow-md active:scale-[0.98]"
-            >
-              <ArrowRightLeft size={12} strokeWidth={2} />
-              Assign to Accounts
             </button>
           </div>
         </div>

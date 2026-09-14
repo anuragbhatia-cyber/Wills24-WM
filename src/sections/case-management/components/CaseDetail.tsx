@@ -40,10 +40,11 @@ import type {
 // Constants
 // ---------------------------------------------------------------------------
 
-type TabKey = 'details' | 'documents'
+type TabKey = 'details' | 'follow-ups' | 'documents'
 
 const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: 'details', label: 'Case Details', icon: <FileText size={14} /> },
+  { key: 'follow-ups', label: 'Follow-ups', icon: <MessageSquare size={14} /> },
   { key: 'documents', label: 'Documents', icon: <FileText size={14} /> },
 ]
 
@@ -259,6 +260,7 @@ export function CaseDetail({
               const isActive = activeTab === tab.key
               let count: number | null = null
               if (tab.key === 'documents') count = documents.length
+              if (tab.key === 'follow-ups') count = followUps.length
 
               return (
                 <button
@@ -288,6 +290,9 @@ export function CaseDetail({
       <div>
         {activeTab === 'details' && (
           <DetailsTab caseData={caseData} />
+        )}
+        {activeTab === 'follow-ups' && (
+          <FollowUpsTab followUps={followUps} />
         )}
         {activeTab === 'documents' && (
           <DocumentsTab documents={documents} onDownloadDocument={onDownloadDocument} />
@@ -536,24 +541,18 @@ export function CaseDetail({
 // Tab: Follow-ups
 // ===========================================================================
 
-function FollowUpsTab({ followUps, onAddFollowUp }: { followUps: CaseFollowUp[]; onAddFollowUp?: () => void }) {
+function FollowUpsTab({ followUps }: { followUps: CaseFollowUp[] }) {
   const sorted = [...followUps].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">Follow-up Timeline</h2>
-        <button
-          onClick={onAddFollowUp}
-          className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-white bg-yellow-500 rounded-lg hover:bg-yellow-500 transition-colors cursor-pointer shadow-sm"
-        >
-          <Plus size={12} />
-          Add Follow-up
-        </button>
+        <span className="text-xs text-neutral-400 dark:text-neutral-500">{sorted.length} {sorted.length === 1 ? 'entry' : 'entries'}</span>
       </div>
 
       {sorted.length === 0 ? (
-        <EmptyState icon={<MessageSquare size={32} />} title="No follow-ups yet" subtitle="Add the first follow-up entry to start tracking this case." />
+        <EmptyState icon={<MessageSquare size={32} />} title="No follow-ups yet" subtitle="Follow-up entries added by the operations team will appear here." />
       ) : (
         <div className="relative">
           {/* Vertical timeline line */}

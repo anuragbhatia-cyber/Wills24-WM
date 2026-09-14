@@ -14,7 +14,6 @@ import {
   MoreVertical,
   Eye,
   Pencil,
-  Plus,
   Filter,
   Download,
   ChevronDown,
@@ -107,7 +106,6 @@ export function CaseList({
   statusCounts,
   onView,
   onEdit,
-  onCreate,
 }: CaseListProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('all')
   const [search, setSearch] = useState('')
@@ -379,13 +377,6 @@ export function CaseList({
           <button className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-neutral-600 dark:text-neutral-300 border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800 rounded-lg hover:border-neutral-300 hover:bg-neutral-50 dark:hover:border-neutral-600 dark:hover:bg-neutral-700 transition-all cursor-pointer">
             <Download size={13} />
             Export
-          </button>
-          <button
-            onClick={onCreate}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-white bg-yellow-500 rounded-lg hover:bg-yellow-500 transition-colors cursor-pointer shadow-sm"
-          >
-            <Plus size={13} />
-            Add New Case
           </button>
         </div>
       </div>
@@ -699,7 +690,7 @@ export function CaseList({
               </p>
               <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
                 {cases.length === 0
-                  ? 'Get started by opening your first case'
+                  ? 'Cases created by the operations team will appear here'
                   : search
                     ? 'Try a different search term'
                     : hasActiveFilters
@@ -708,15 +699,7 @@ export function CaseList({
                         ? 'No cases in this status'
                         : 'No cases match your criteria'}
               </p>
-              {cases.length === 0 ? (
-                <button
-                  onClick={onCreate}
-                  className="mt-4 inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-white bg-yellow-500 hover:bg-yellow-600 rounded-lg shadow-sm transition-colors cursor-pointer"
-                >
-                  <Plus size={13} />
-                  Add your first case
-                </button>
-              ) : (search || hasActiveFilters) && (
+              {cases.length === 0 ? null : (search || hasActiveFilters) && (
                 <button
                   onClick={() => {
                     setSearch('')
