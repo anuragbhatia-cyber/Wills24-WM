@@ -46,6 +46,9 @@ import type {
   CustomerStatus,
   KpiStats,
 } from '@/../product/sections/customers/types'
+import type { TeamScope } from '@/../product/sections/team/types'
+import { ScopeSwitch, AddedBy } from '@/sections/team/components/ScopeSwitch'
+import { filterByScope, isAdminWM, ownerLabel, ownerOptions } from '@/sections/team/components/scope'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -124,9 +127,31 @@ export function CustomerList({
   onSendQuotation,
   onViewCases,
   onViewDocuments,
+  viewer,
+  onScopeChange,
   onCreate,
 }: CustomerListProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('all')
+
+  // Team scope: admin wealth manager picks Team / Mine / one member; a team member sees only their own
+  const isAdmin = isAdminWM(viewer)
+  const [scope, setScope] = useState<TeamScope>('team')
+  function changeScope(next: TeamScope) {
+    setScope(next)
+    setFilterWM('')
+    onScopeChange?.(next)
+  }
+  const scopedCustomers = useMemo(
+    () => filterByScope(customers, (c) => c.wealthManagerId, viewer, scope),
+    [customers, viewer, scope],
+  )
+  const tabCounts = viewer
+    ? {
+        all: scopedCustomers.length,
+        active: scopedCustomers.filter((c) => c.status === 'active').length,
+        inactive: scopedCustomers.filter((c) => c.status === 'inactive').length,
+      }
+    : statusCounts
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebounce(search, 250)
   const [openMenu, setOpenMenu] = useState<string | null>(null)
@@ -141,9 +166,9 @@ export function CustomerList({
 
   const wmOptions = useMemo(() => {
     const set = new Set<string>()
-    customers.forEach((c) => set.add(c.wealthManagerName))
+    scopedCustomers.forEach((c) => set.add(c.wealthManagerName))
     return Array.from(set).sort()
-  }, [customers])
+  }, [scopedCustomers])
 
   const serviceOptions = useMemo(() => {
     const set = new Set<string>()
@@ -185,6 +210,8 @@ export function CustomerList({
   const [addCompany, setAddCompany] = useState('')
   const [addDesignation, setAddDesignation] = useState('')
   const [addWealthManagerName, setAddWealthManagerName] = useState('')
+  // Owner for a new customer: defaults to the signed-in wealth manager
+  const [addOwnerId, setAddOwnerId] = useState(viewer?.wealthManagerId ?? '')
   const [addNotes, setAddNotes] = useState('')
   // Step 2 — Services
   const [addServices, setAddServices] = useState<string[]>([])
@@ -208,6 +235,7 @@ export function CustomerList({
     setAddCompany('')
     setAddDesignation('')
     setAddWealthManagerName('')
+    setAddOwnerId(viewer?.wealthManagerId ?? '')
     setAddNotes('')
     setAddServices([])
     setAddDocuments([])
@@ -264,8 +292,13 @@ export function CustomerList({
         address: addAddress.trim(),
         dateOfBirth: addDob,
         pan: addPan.trim().toUpperCase(),
-        wealthManagerId: '',
-        wealthManagerName: addWealthManagerName.trim(),
+        ...(viewer
+          ? (() => {
+              const ownerId = isAdmin ? addOwnerId || viewer.wealthManagerId : viewer.wealthManagerId
+              const owner = viewer.teamMembers.find((m) => m.id === ownerId)
+              return { wealthManagerId: ownerId, wealthManagerName: owner?.name ?? viewer.name }
+            })()
+          : { wealthManagerId: '', wealthManagerName: addWealthManagerName.trim() }),
         servicesAvailed: [...addServices],
         activeCases: 0,
         totalCases: 0,
@@ -274,6 +307,7 @@ export function CustomerList({
         status: 'active',
         convertedAt: new Date().toISOString(),
         notes: addNotes.trim(),
+        documentAccessGranted: false,
       }
       onCreate?.(customer)
       resetAddForm()
@@ -343,7 +377,7 @@ export function CustomerList({
   // --- Filter & Sort --------------------------------------------------------
 
   const filtered = useMemo(() => {
-    let list = customers
+    let list = scopedCustomers
 
     // Tab filter
     if (activeTab !== 'all') list = list.filter((c) => c.status === activeTab)
@@ -392,7 +426,7 @@ export function CustomerList({
 
     return list
   }, [
-    customers,
+    scopedCustomers,
     activeTab,
     debouncedSearch,
     sortKey,
@@ -406,7 +440,7 @@ export function CustomerList({
   const [pageSize, setPageSize] = useState(25)
   useEffect(() => {
     setPage(1)
-  }, [debouncedSearch, filterWM, filterService, activeTab, pageSize])
+  }, [debouncedSearch, filterWM, filterService, activeTab, pageSize, scope])
   const pagedCustomers = useMemo(() => {
     const start = (page - 1) * pageSize
     return filtered.slice(start, start + pageSize)
@@ -421,16 +455,21 @@ export function CustomerList({
     }
   }
 
+  const gridCols = isAdmin
+    ? 'grid-cols-[100px_minmax(180px,2fr)_minmax(140px,1.2fr)_90px_100px_minmax(120px,1fr)_80px_48px]'
+    : 'grid-cols-[100px_minmax(180px,2fr)_minmax(140px,1.2fr)_90px_100px_80px_48px]'
+
   if (isLoading) return <ListSkeleton kpis={4} rows={6} />
 
   return (
     <div className="space-y-6 pb-8">
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 tracking-tight">
             Customers
           </h1>
+          <ScopeSwitch viewer={viewer} value={scope} onChange={changeScope} />
         </div>
         <div className="flex items-center gap-2 mt-3 sm:mt-0">
           <button className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-neutral-600 dark:text-neutral-300 border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800 rounded-lg hover:border-neutral-300 hover:bg-neutral-50 dark:hover:border-neutral-600 dark:hover:bg-neutral-700 transition-all cursor-pointer">
@@ -456,11 +495,11 @@ export function CustomerList({
             const isActive = activeTab === tab.key
             const count =
               tab.key === 'all'
-                ? statusCounts.all
+                ? tabCounts.all
                 : tab.key === 'active'
-                  ? statusCounts.active
+                  ? tabCounts.active
                   : tab.key === 'inactive'
-                    ? statusCounts.inactive
+                    ? tabCounts.inactive
                     : 0
             return (
               <button
@@ -524,7 +563,7 @@ export function CustomerList({
           </span>
           {filterWM && (
             <span className="inline-flex items-center gap-1 rounded-full border border-yellow-200 bg-yellow-50 px-2 py-0.5 text-[11px] font-medium text-yellow-700 dark:border-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300">
-              WM: {filterWM}
+              {viewer ? 'Added by' : 'WM'}: {filterWM === viewer?.name ? 'You' : filterWM}
               <button
                 onClick={() => setFilterWM('')}
                 className="ml-0.5 inline-flex items-center justify-center rounded-full p-0.5 hover:bg-yellow-100 dark:hover:bg-yellow-900/40 cursor-pointer"
@@ -557,9 +596,10 @@ export function CustomerList({
 
       {showFilters && (
         <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-4 py-3 dark:border-neutral-700 dark:bg-neutral-900">
+          {(!viewer || isAdmin) && (
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-400">
-              Wealth Manager
+              {viewer ? 'Added by' : 'Wealth Manager'}
             </span>
             <div className="relative">
               <select
@@ -567,14 +607,15 @@ export function CustomerList({
                 onChange={(e) => setFilterWM(e.target.value)}
                 className="h-[30px] appearance-none rounded-md border border-neutral-200 bg-white pl-2.5 pr-7 text-[12px] text-neutral-700 outline-none focus:border-yellow-300 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
               >
-                <option value="">All Wealth Managers</option>
+                <option value="">{viewer ? 'Anyone' : 'All Wealth Managers'}</option>
                 {wmOptions.map((name) => (
-                  <option key={name} value={name}>{name}</option>
+                  <option key={name} value={name}>{name === viewer?.name ? 'You' : name}</option>
                 ))}
               </select>
               <ChevronDown size={12} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400" />
             </div>
           </div>
+          )}
 
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-400">
@@ -891,6 +932,31 @@ export function CustomerList({
                     Conversion
                   </h3>
                   <div className="space-y-3">
+                    {isAdmin ? (
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Owner</label>
+                        <div className="relative">
+                          <select
+                            value={addOwnerId}
+                            onChange={(e) => setAddOwnerId(e.target.value)}
+                            className="w-full appearance-none rounded-lg border border-neutral-300 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-yellow-500 focus:outline-none focus:ring-1 focus:ring-yellow-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+                          >
+                            {ownerOptions(viewer)
+                              .filter((o) => o.status !== 'inactive')
+                              .map((o) => (
+                                <option key={o.id} value={o.id}>{o.name}</option>
+                              ))}
+                          </select>
+                          <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                        </div>
+                        <p className="mt-1 text-xs text-neutral-400">Add on behalf of a team member, or keep it as yours.</p>
+                      </div>
+                    ) : viewer ? (
+                      <p className="flex items-center gap-1.5 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-500 dark:bg-neutral-800/60 dark:text-neutral-400">
+                        <UserCircle size={13} />
+                        This customer will be added under your name.
+                      </p>
+                    ) : (
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Wealth Manager</label>
                       <input
@@ -901,6 +967,7 @@ export function CustomerList({
                         className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:border-yellow-500 focus:outline-none focus:ring-1 focus:ring-yellow-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder-neutral-500"
                       />
                     </div>
+                    )}
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Notes</label>
                       <textarea
@@ -1162,12 +1229,13 @@ export function CustomerList({
       {/* ── Table ────────────────────────────────────────────────────────── */}
       <div className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-xs dark:shadow-none overflow-hidden">
           {/* Table header — desktop */}
-          <div className="hidden lg:grid grid-cols-[100px_minmax(180px,2fr)_minmax(140px,1.2fr)_90px_100px_80px_48px] gap-2 px-5 py-3 bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-800 text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 sticky top-0 z-10">
+          <div className={`hidden lg:grid ${gridCols} gap-2 px-5 py-3 bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-800 text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 sticky top-0 z-10`}>
             <span>ID</span>
             <SortHeader label="Customer" sortKey="name" current={sortKey} dir={sortDir} onSort={toggleSort} />
             <span>Services</span>
             <SortHeader label="Cases" sortKey="activeCases" current={sortKey} dir={sortDir} onSort={toggleSort} />
             <SortHeader label="Payments" sortKey="totalPayments" current={sortKey} dir={sortDir} onSort={toggleSort} />
+            {isAdmin && <span>Added by</span>}
             <span className="text-center">Status</span>
             <span />
           </div>
@@ -1222,7 +1290,7 @@ export function CustomerList({
                 <div key={customer.id}>
                   {/* ── Desktop row ─────────────────────────────────── */}
                   <div
-                    className={`hidden lg:grid grid-cols-[100px_minmax(180px,2fr)_minmax(140px,1.2fr)_90px_100px_80px_48px] gap-2 px-5 py-3.5 items-center hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors cursor-pointer ${
+                    className={`hidden lg:grid ${gridCols} gap-2 px-5 py-3.5 items-center hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors cursor-pointer ${
                       !isLast && !isExpanded ? 'border-b border-neutral-100 dark:border-neutral-800/60' : ''
                     } ${isExpanded ? 'bg-neutral-50 dark:bg-neutral-800/20' : ''}`}
                     onClick={() => onView?.(customer.id)}
@@ -1296,6 +1364,11 @@ export function CustomerList({
                         {formatCurrency(customer.totalPayments)}
                       </p>
                     </div>
+
+                    {/* Added by */}
+                    {isAdmin && (
+                      <AddedBy ownerId={customer.wealthManagerId} ownerName={customer.wealthManagerName} viewer={viewer} />
+                    )}
 
                     {/* Status */}
                     <div className="flex justify-center">
@@ -1445,8 +1518,8 @@ export function CustomerList({
                           />
                           <InfoCell
                             icon={<UserCircle size={11} />}
-                            label="Wealth Manager"
-                            value={customer.wealthManagerName}
+                            label={viewer ? 'Added by' : 'Wealth Manager'}
+                            value={ownerLabel(customer.wealthManagerId, customer.wealthManagerName, viewer)}
                           />
                           <InfoCell
                             icon={<Calendar size={11} />}

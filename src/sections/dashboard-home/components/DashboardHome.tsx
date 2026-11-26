@@ -12,6 +12,8 @@ import type {
   ConversionFunnelStage,
   QuickAction,
 } from '@/../product/sections/dashboard-home/types'
+import type { TeamScope } from '@/../product/sections/team/types'
+import { ScopeSwitch } from '@/sections/team/components/ScopeSwitch'
 import {
   IndianRupee,
   BarChart3,
@@ -194,7 +196,7 @@ function scaleFunnel(base: ConversionFunnelStage[], preset: string): ConversionF
 
 function scaleCaseStatus(base: CaseStatusEntry[], preset: string): CaseStatusEntry[] {
   const m = PRESET_MULTIPLIERS[preset] ?? 1
-  return base.map((s) => ({ ...s, count: Math.max(1, Math.round(s.count * m)) }))
+  return base.map((s) => ({ ...s, count: s.count === 0 ? 0 : Math.max(1, Math.round(s.count * m)) }))
 }
 
 // ─── Interactive Line Chart ─────────────────────────────────────────────────
@@ -422,12 +424,14 @@ function KpiCard({
   icon: Icon,
   iconColor,
   trend,
+  hint,
 }: {
   label: string
   value: string
   icon: React.ComponentType<{ className?: string }>
   iconColor: string
   trend?: { value: string; up: boolean }
+  hint?: string
 }) {
   return (
     <div
@@ -457,6 +461,9 @@ function KpiCard({
           )}
           {trend.value} vs last month
         </div>
+      )}
+      {hint && (
+        <p className="mt-1.5 text-[11px] text-neutral-500 dark:text-neutral-400">{hint}</p>
       )}
     </div>
   )
@@ -511,8 +518,17 @@ export function DashboardHome({
   onQuickAction,
   onActivityClick,
   onPendingItemClick,
+  viewer,
+  onScopeChange,
+  sharedCredits,
 }: DashboardHomeProps) {
   const [selectedPreset, setSelectedPreset] = useState<string>('This Month')
+  // Team scope (admin wealth manager only); the parent passes back scoped data
+  const [scope, setScope] = useState<TeamScope>('team')
+  function changeScope(next: TeamScope) {
+    setScope(next)
+    onScopeChange?.(next)
+  }
   const isLoading = useInitialLoading()
 
   const firstName = user.name.split(' ')[0]
@@ -627,13 +643,21 @@ export function DashboardHome({
 
       iconColor: 'text-blue-400',
     },
-    {
-      label: 'Cases Remaining',
-      value: scaledKpiStats.willsRemaining.toString(),
-      icon: FileText,
+    sharedCredits
+      ? {
+          label: 'Will Credits Left',
+          value: sharedCredits.left.toString(),
+          icon: Wallet,
+          iconColor: 'text-violet-500',
+          hint: `of ${sharedCredits.total} · shared with your team`,
+        }
+      : {
+          label: 'Cases Remaining',
+          value: scaledKpiStats.willsRemaining.toString(),
+          icon: FileText,
 
-      iconColor: 'text-violet-500',
-    },
+          iconColor: 'text-violet-500',
+        },
   ]
 
   if (isLoading) {
@@ -713,6 +737,8 @@ export function DashboardHome({
           </p>
         </div>
 
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <ScopeSwitch viewer={viewer} value={scope} onChange={changeScope} />
         <div className="flex items-center gap-1 bg-neutral-200/50 dark:bg-neutral-800 rounded-lg p-1">
           {DATE_PRESETS.map((preset) => (
             <button
@@ -730,6 +756,7 @@ export function DashboardHome({
               {preset}
             </button>
           ))}
+        </div>
         </div>
       </div>
 
@@ -761,6 +788,11 @@ export function DashboardHome({
             </div>
           </div>
           <div className="divide-y divide-neutral-100 dark:divide-neutral-800 max-h-[280px] overflow-y-auto">
+            {activityFeed.length === 0 && (
+              <p className="px-5 py-10 text-center text-xs text-neutral-500 dark:text-neutral-400">
+                No activity in this scope yet
+              </p>
+            )}
             {activityFeed.slice(0, 8).map((item) => {
               const dotColor = ROLE_DOT[item.actorRole] || 'bg-neutral-400'
               const EntityIcon = ENTITY_ICONS[item.entityType] || CircleDot
@@ -780,9 +812,12 @@ export function DashboardHome({
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-neutral-700 dark:text-neutral-300">
                       <span className="font-semibold text-neutral-900 dark:text-neutral-100">
-                        {item.actor}
+                        {viewer && item.actor === viewer.name ? 'You' : item.actor}
                       </span>{' '}
                       {item.action}
+                      {viewer && (
+                        <span className="text-neutral-500 dark:text-neutral-400"> · {item.entityName}</span>
+                      )}
                     </p>
                   </div>
                   <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-mono whitespace-nowrap shrink-0">

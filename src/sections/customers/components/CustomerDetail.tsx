@@ -44,6 +44,8 @@ import type {
   FollowUpType,
   CustomerStatus,
 } from '@/../product/sections/customers/types'
+import { OwnerLine } from '@/sections/team/components/ScopeSwitch'
+import type { TeamViewer } from '@/../product/sections/team/types'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -157,6 +159,7 @@ export function CustomerDetail({
   onViewCase,
   onDownloadDocument,
   onBack,
+  viewer,
 }: CustomerDetailProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('profile')
 
@@ -327,7 +330,7 @@ export function CustomerDetail({
 
           {/* Sidebar — Wealth Manager card */}
           <div className="w-full lg:w-72 shrink-0">
-            <WealthManagerCard wm={wealthManager} />
+            <WealthManagerCard wm={wealthManager} viewer={viewer} ownerId={customer.wealthManagerId} ownerName={customer.wealthManagerName} />
           </div>
         </div>
       </div>
@@ -939,7 +942,17 @@ function EmptyState({ icon, title, description }: { icon: React.ReactNode; title
   )
 }
 
-function WealthManagerCard({ wm }: { wm: WealthManager }) {
+function WealthManagerCard({
+  wm,
+  viewer,
+  ownerId,
+  ownerName,
+}: {
+  wm: WealthManager
+  viewer?: TeamViewer
+  ownerId: string
+  ownerName: string
+}) {
   return (
     <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-xs dark:shadow-none p-5 sticky top-16">
       <h3 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-4">
@@ -952,9 +965,15 @@ function WealthManagerCard({ wm }: { wm: WealthManager }) {
         </div>
         <div>
           <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">{wm.name}</p>
-          <p className="text-[11px] text-neutral-400 dark:text-neutral-500">{wm.company}</p>
+          <p className="text-[11px] text-neutral-400 dark:text-neutral-500">{viewer ? viewer.companyName : wm.company}</p>
         </div>
       </div>
+
+      {viewer && (
+        <div className="mb-4">
+          <OwnerLine ownerId={ownerId} ownerName={ownerName} viewer={viewer} />
+        </div>
+      )}
 
       <div className="space-y-3 text-xs">
         <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400">

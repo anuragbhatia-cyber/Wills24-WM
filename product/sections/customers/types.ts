@@ -1,3 +1,5 @@
+import type { TeamScope, TeamViewer } from '../team/types'
+
 // =============================================================================
 // Data Types
 // =============================================================================
@@ -211,6 +213,10 @@ export interface CustomerListProps {
   onViewCases?: (id: string) => void
   /** Called when user wants to view a customer's documents */
   onViewDocuments?: (id: string) => void
+  /** Signed-in wealth manager; enables team scope, Added by and owner picker */
+  viewer?: TeamViewer
+  /** Called when an admin wealth manager switches between Team, Mine or one team member */
+  onScopeChange?: (scope: TeamScope) => void
   /** Called when user submits the New Customer form */
   onCreate?: (customer: Customer) => void
 }
@@ -230,6 +236,8 @@ export interface CustomerDetailProps {
   followUps: CustomerFollowUp[]
   /** Assigned Wealth Manager details */
   wealthManager: WealthManager
+  /** Signed-in wealth manager; shows the owning team member and their admin wealth manager */
+  viewer?: TeamViewer
   /** Called when user wants to edit the customer */
   onEdit?: () => void
   /** Called when user wants to send a quotation for additional services */

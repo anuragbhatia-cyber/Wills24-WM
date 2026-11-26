@@ -31,6 +31,9 @@ import type {
   Lead,
   LeadStatus,
 } from '@/../product/sections/sales-crm/types'
+import type { TeamScope, TeamViewer } from '@/../product/sections/team/types'
+import { ScopeSwitch, AddedBy } from '@/sections/team/components/ScopeSwitch'
+import { filterByScope, isAdminWM, ownerOptions } from '@/sections/team/components/scope'
 import { LeadForm } from './LeadForm'
 import {
   Dialog,
@@ -174,8 +177,24 @@ export function LeadsList({
   onImportLeads,
   onExportLeads,
   onAddFollowUp,
+  viewer,
+  onScopeChange,
 }: SalesCRMProps) {
   const [activeTab, setActiveTab] = useState<'all' | LeadStatus>('all')
+
+  // Team scope: admin wealth manager picks Team / Mine / one member; a team member sees only their own
+  const isAdmin = isAdminWM(viewer)
+  const [scope, setScope] = useState<TeamScope>('team')
+  const [ownerFilter, setOwnerFilter] = useState('')
+  function changeScope(next: TeamScope) {
+    setScope(next)
+    setOwnerFilter('')
+    onScopeChange?.(next)
+  }
+  const scopedLeads = useMemo(
+    () => filterByScope(leads, (l) => l.wealthManagerId, viewer, scope),
+    [leads, viewer, scope],
+  )
   const [searchQuery, setSearchQuery] = useState('')
   const debouncedSearch = useDebounce(searchQuery, 250)
   const [sourceFilter, setSourceFilter] = useState<string>('')
@@ -219,7 +238,7 @@ export function LeadsList({
   }, [leads])
 
   const filteredLeads = useMemo(() => {
-    let result = leads
+    let result = scopedLeads
 
     // Status tab filter (uses override if set)
     if (activeTab !== 'all') {
@@ -250,25 +269,30 @@ export function LeadsList({
       result = result.filter((l) => l.assignedEmployee === employeeFilter)
     }
 
+    // Added by (admin wealth manager only)
+    if (ownerFilter) {
+      result = result.filter((l) => l.wealthManagerId === ownerFilter)
+    }
+
     return result
-  }, [leads, activeTab, debouncedSearch, sourceFilter, employeeFilter, statusOverrides])
+  }, [scopedLeads, activeTab, debouncedSearch, sourceFilter, employeeFilter, ownerFilter, statusOverrides])
 
   // Override-aware status counts (so tab badges reflect bulk moves)
   const effectiveStatusCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: leads.length }
-    leads.forEach((l) => {
+    const counts: Record<string, number> = { all: scopedLeads.length }
+    scopedLeads.forEach((l) => {
       const s = getStatus(l)
       counts[s] = (counts[s] ?? 0) + 1
     })
     return counts
-  }, [leads, statusOverrides])
+  }, [scopedLeads, statusOverrides])
 
   // Pagination
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
   useEffect(() => {
     setPage(1)
-  }, [debouncedSearch, sourceFilter, employeeFilter, activeTab, pageSize])
+  }, [debouncedSearch, sourceFilter, employeeFilter, ownerFilter, activeTab, pageSize, scope])
   const pagedLeads = useMemo(() => {
     const start = (page - 1) * pageSize
     return filteredLeads.slice(start, start + pageSize)
@@ -333,8 +357,9 @@ export function LeadsList({
     }
   }
 
-  const hasActiveFilters = sourceFilter || employeeFilter
-  const activeFilterCount = [sourceFilter, employeeFilter].filter(Boolean).length
+  const hasActiveFilters = sourceFilter || employeeFilter || ownerFilter
+  const activeFilterCount = [sourceFilter, employeeFilter, ownerFilter].filter(Boolean).length
+  const ownerFilterLabel = ownerOptions(viewer).find((o) => o.id === ownerFilter)?.name
 
   // Modal handlers
   const openEditModal = (lead: Lead) => {
@@ -386,11 +411,12 @@ export function LeadsList({
       {/* ----------------------------------------------------------------- */}
       {/* Page Header                                                       */}
       {/* ----------------------------------------------------------------- */}
-      <div className="flex items-end justify-between">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <h1 className="text-[22px] font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
             Sales CRM
           </h1>
+          <ScopeSwitch viewer={viewer} value={scope} onChange={changeScope} />
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -421,7 +447,7 @@ export function LeadsList({
       {/* Summary Cards                                                     */}
       {/* ----------------------------------------------------------------- */}
       {(() => {
-        const totalLeads = leads.length
+        const totalLeads = scopedLeads.length
         const wonCount = effectiveStatusCounts['won'] ?? 0
         const lostCount = effectiveStatusCounts['lost'] ?? 0
         const activePipeline =
@@ -605,8 +631,20 @@ export function LeadsList({
               </button>
             </span>
           )}
+          {ownerFilter && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-yellow-200 bg-yellow-50 px-2 py-0.5 text-[11px] font-medium text-yellow-700 dark:border-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300">
+              Added by: {ownerFilterLabel}
+              <button
+                onClick={() => setOwnerFilter('')}
+                className="ml-0.5 inline-flex items-center justify-center rounded-full p-0.5 hover:bg-yellow-100 dark:hover:bg-yellow-900/40 cursor-pointer"
+                aria-label={`Clear filter Added by: ${ownerFilterLabel}`}
+              >
+                <X size={10} />
+              </button>
+            </span>
+          )}
           <button
-            onClick={() => { setSourceFilter(''); setEmployeeFilter('') }}
+            onClick={() => { setSourceFilter(''); setEmployeeFilter(''); setOwnerFilter('') }}
             className="ml-1 text-[11px] font-medium text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 cursor-pointer"
           >
             Clear all
@@ -666,12 +704,40 @@ export function LeadsList({
             </div>
           </div>
 
+          {/* Added by filter (admin wealth manager only) */}
+          {isAdmin && (
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-400">
+                Added by
+              </span>
+              <div className="relative">
+                <select
+                  value={ownerFilter}
+                  onChange={(e) => setOwnerFilter(e.target.value)}
+                  className="h-[30px] appearance-none rounded-md border border-neutral-200 bg-white pl-2.5 pr-7 text-[12px] text-neutral-700 outline-none focus:border-yellow-300 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+                >
+                  <option value="">Anyone</option>
+                  {ownerOptions(viewer).map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={12}
+                  className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Clear all */}
           {hasActiveFilters && (
             <button
               onClick={() => {
                 setSourceFilter('')
                 setEmployeeFilter('')
+                setOwnerFilter('')
               }}
               className="ml-auto flex items-center gap-1 text-[11px] font-medium text-yellow-600 hover:text-yellow-700 dark:text-yellow-400"
             >
@@ -751,7 +817,7 @@ export function LeadsList({
             'Source',
             'Contact',
             'Company',
-            'Employee Assigned',
+            viewer ? 'Added by' : 'Employee Assigned',
             'Service',
             'Status',
             'Activity',
@@ -823,6 +889,7 @@ export function LeadsList({
                 onDelete={() => openDeleteModal(lead)}
                 onFollowUp={() => openFollowUpModal(lead)}
                 onSendQuotation={() => openSendQuotationModal(lead)}
+                viewer={viewer}
               />
             ))}
           </div>
@@ -1141,6 +1208,7 @@ export function LeadsList({
 
 interface LeadRowProps {
   lead: Lead
+  viewer?: TeamViewer
   selected: boolean
   onToggleSelect: () => void
   isActionMenuOpen: boolean
@@ -1165,6 +1233,7 @@ function LeadRow({
   onDelete,
   onFollowUp,
   onSendQuotation,
+  viewer,
 }: LeadRowProps) {
   const status = STATUS_CONFIG[lead.status]
   const sourceColor = SOURCE_COLORS[lead.source] ?? 'bg-neutral-100 text-neutral-600'
@@ -1214,6 +1283,11 @@ function LeadRow({
           <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-neutral-500 dark:text-neutral-400">
             <span className="truncate">{lead.serviceInterest}</span>
             {lead.company && <span className="truncate">· {lead.company}</span>}
+            {viewer?.role === 'admin-wm' && (
+              <span className="truncate">
+                · Added by {lead.wealthManagerId === viewer.wealthManagerId ? 'you' : lead.wealthManagerName}
+              </span>
+            )}
           </div>
         </div>
         <div onClick={(e) => e.stopPropagation()}>
@@ -1305,11 +1379,15 @@ function LeadRow({
         )}
       </div>
 
-      {/* Employee Assigned */}
+      {/* Employee Assigned / Added by */}
       <div className="min-w-0">
-        <p className="truncate text-[12px] font-medium text-neutral-700 dark:text-neutral-300">
-          {lead.wealthManagerName}
-        </p>
+        {viewer ? (
+          <AddedBy ownerId={lead.wealthManagerId} ownerName={lead.wealthManagerName} viewer={viewer} />
+        ) : (
+          <p className="truncate text-[12px] font-medium text-neutral-700 dark:text-neutral-300">
+            {lead.wealthManagerName}
+          </p>
+        )}
       </div>
 
       {/* Service Interest */}

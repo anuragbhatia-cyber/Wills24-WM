@@ -43,6 +43,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
+import type { TeamViewer } from '@/../product/sections/team/types'
+import { OwnerLine } from '@/sections/team/components/ScopeSwitch'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -58,6 +60,8 @@ export interface LeadDetailProps {
   onCreateQuotation?: (leadId: string) => void
   onSendQuotation?: (quotationId: string, via: QuotationSentVia) => void
   onAssignToAccounts?: (leadId: string) => void
+  /** Signed-in wealth manager; shows the owning team member and their admin wealth manager */
+  viewer?: TeamViewer
 }
 
 // ---------------------------------------------------------------------------
@@ -254,6 +258,7 @@ export function LeadDetail({
   onCreateQuotation,
   onSendQuotation,
   onAssignToAccounts,
+  viewer,
 }: LeadDetailProps) {
   const status = STATUS_CONFIG[lead.status]
 
@@ -526,6 +531,11 @@ export function LeadDetail({
                           </p>
                         </div>
                       </div>
+                      {viewer && (
+                        <div className="mt-3">
+                          <OwnerLine ownerId={lead.wealthManagerId} ownerName={lead.wealthManagerName} viewer={viewer} />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -18,6 +18,8 @@ const SECTION_DEFAULT_SCREENS: Record<string, string> = {
   '/case-management': 'case-management:CaseList',
   '/partners': 'partners:WMList',
   '/team-management': 'team-management:TeamManagement',
+  '/team': 'team:TeamList',
+  '/employees': 'team-management:TeamManagement',
   '/reports-analytics': 'reports-analytics:ReportsAnalytics',
   '/lawyers-directory': 'lawyers-directory:LawyersDirectory',
   '/invoices': 'invoices:InvoiceList',

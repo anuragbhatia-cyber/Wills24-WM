@@ -8,6 +8,7 @@ import {
   UsersRound,
   BarChart3,
   Scale,
+  IdCard,
 } from 'lucide-react'
 import logo from '../../assets/logo.png'
 
@@ -31,6 +32,8 @@ const iconMap: Record<string, React.ElementType> = {
   'case-management': FolderKanban,
   partners: Handshake,
   'team-management': UsersRound,
+  team: UsersRound,
+  employees: IdCard,
   'reports-analytics': BarChart3,
   'lawyers-directory': Scale,
 }

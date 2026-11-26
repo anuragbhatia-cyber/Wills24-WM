@@ -8,10 +8,14 @@ Wills24 Admin uses a sidebar + top bar layout pattern. A fixed sidebar on the le
 - Sales CRM → /sales-crm
 - Customers → /customers
 - Case Management → /case-management
-- Team Management → /team-management
+- Employees → /team-management (users, lawyers directory and HRMS)
+- Team → /team (admin wealth manager only; hidden for team members)
 
 ## User Menu
-Located in the top-right corner of the top bar. Displays user avatar (initials fallback), user name, and role. Dropdown contains Profile and Logout options.
+Located in the top-right corner of the top bar. Displays user avatar (initials fallback), user name, and role. Dropdown contains Change password and Sign out.
+
+## Team Login Indicator
+When a team member (sub wealth manager) is signed in, the top bar shows a "Team Login · Part of [admin wealth manager's company]" pill beside their name on every page, so it is always clear this is a team account. Admin wealth managers do not see it.
 
 ## Layout Pattern
 - **Sidebar (left):** 240px fixed width, dark neutral background (neutral-900), logo/brand at top, icon + label nav items, orange-500 highlight on active item

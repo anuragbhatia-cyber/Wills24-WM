@@ -1,3 +1,5 @@
+import type { TeamScope, TeamViewer } from '../team/types'
+
 // =============================================================================
 // Data Types
 // =============================================================================
@@ -111,4 +113,10 @@ export interface DashboardHomeProps {
   onActivityClick?: (entityType: string, entityId: string) => void
   /** Called when user clicks on a pending item to resolve or view it */
   onPendingItemClick?: (itemId: string) => void
+  /** Signed-in wealth manager; shows the Team / Mine scope switch for an admin wealth manager */
+  viewer?: TeamViewer
+  /** Called when the admin wealth manager switches scope; pass back scoped kpiStats, caseStatusDistribution and activityFeed */
+  onScopeChange?: (scope: TeamScope) => void
+  /** Will credits left in the package shared by the whole team */
+  sharedCredits?: { left: number; total: number }
 }

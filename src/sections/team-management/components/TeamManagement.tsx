@@ -391,7 +391,7 @@ export function TeamManagement({
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-white tracking-tight">
-            {view === 'lawyers-only' ? 'Lawyers Directory' : 'Team Management'}
+            {view === 'lawyers-only' ? 'Lawyers Directory' : 'Employees'}
           </h1>
         </div>
       </div>

@@ -1,0 +1,122 @@
+{
+  "_meta": {
+    "models": {
+      "adminWealthManager": "The signed-in admin wealth manager who owns the team, the package and the will credits.",
+      "parentAccess": "The admin wealth manager's own module access, set by Wills24 admin. Team members can never exceed it.",
+      "members": "Sub wealth managers (team members) under the admin wealth manager. Each logs in with their own email and password and sees only their own records.",
+      "sharedPackage": "The admin wealth manager's package. The whole team draws will credits from this one balance.",
+      "creditUsage": "Every will credit spent by anyone on the team, recording who spent it."
+    },
+    "relationships": [
+      "A team member belongs to exactly one admin wealth manager; one level only",
+      "Customers, leads and cases carry an owner wealth manager ID matching either the admin wealth manager or a team member",
+      "Credit usage draws from the shared package and records the team member who spent it"
+    ]
+  },
+  "adminWealthManager": {
+    "id": "WM-001",
+    "code": "PAT-00020",
+    "name": "Vikram Mehta",
+    "email": "vikram.mehta@wealthfirst.in",
+    "companyName": "WealthFirst Advisors"
+  },
+  "subViewerId": "WM-002",
+  "parentAccess": {
+    "leads": "edit",
+    "customers": "edit",
+    "cases": "comment"
+  },
+  "members": [
+    {
+      "id": "WM-002",
+      "code": "PAT-00020-S01",
+      "name": "Sonal Kapoor",
+      "email": "sonal.kapoor@wealthfirst.in",
+      "phone": "+91 88222 33445",
+      "designation": "Senior Advisor",
+      "status": "active",
+      "customers": 1,
+      "activeCases": 1,
+      "leads": 2,
+      "willsUsed": 4,
+      "access": { "leads": "edit", "customers": "edit", "cases": "comment" },
+      "documentsAccess": false,
+      "createdAt": "2026-10-02T10:00:00Z",
+      "lastLoginAt": "2026-11-26T09:12:00Z"
+    },
+    {
+      "id": "WM-003",
+      "code": "PAT-00020-S02",
+      "name": "Rohit Singhania",
+      "email": "rohit.singhania@wealthfirst.in",
+      "phone": "+91 77333 44556",
+      "designation": "Relationship Manager",
+      "status": "active",
+      "customers": 1,
+      "activeCases": 0,
+      "leads": 2,
+      "willsUsed": 3,
+      "access": { "leads": "edit", "customers": "comment", "cases": "view" },
+      "documentsAccess": true,
+      "createdAt": "2026-10-09T10:00:00Z",
+      "lastLoginAt": "2026-11-25T17:40:00Z"
+    },
+    {
+      "id": "WM-004",
+      "code": "PAT-00020-S03",
+      "name": "Neha Gupta",
+      "email": "neha.gupta@wealthfirst.in",
+      "phone": "+91 66444 55667",
+      "designation": "Associate Advisor",
+      "status": "active",
+      "customers": 2,
+      "activeCases": 1,
+      "leads": 1,
+      "willsUsed": 2,
+      "access": { "leads": "edit", "customers": "view", "cases": "view" },
+      "documentsAccess": false,
+      "createdAt": "2026-10-21T10:00:00Z",
+      "lastLoginAt": "2026-11-24T11:05:00Z"
+    },
+    {
+      "id": "WM-005",
+      "code": "PAT-00020-S04",
+      "name": "Aditya Sharma",
+      "email": "aditya.sharma@wealthfirst.in",
+      "phone": "+91 55666 77889",
+      "designation": "Associate",
+      "status": "inactive",
+      "customers": 0,
+      "activeCases": 0,
+      "leads": 1,
+      "willsUsed": 1,
+      "access": { "leads": "comment", "customers": "view", "cases": "none" },
+      "documentsAccess": false,
+      "createdAt": "2026-10-28T10:00:00Z",
+      "lastLoginAt": "2026-11-10T15:30:00Z"
+    }
+  ],
+  "sharedPackage": {
+    "name": "Gold Package",
+    "tier": "Gold",
+    "willsIncluded": 25,
+    "willsUsed": 14,
+    "validUntil": "2027-09-30T00:00:00Z"
+  },
+  "creditUsage": [
+    { "id": "CU-014", "usedById": "WM-002", "usedByName": "Sonal Kapoor", "customerName": "Dr. Lakshmi Venkataraman", "usedAt": "2026-11-25T12:20:00Z" },
+    { "id": "CU-013", "usedById": "WM-001", "usedByName": "Vikram Mehta", "customerName": "Arvind Saxena", "usedAt": "2026-11-22T10:05:00Z" },
+    { "id": "CU-012", "usedById": "WM-003", "usedByName": "Rohit Singhania", "customerName": "Sunita Oberoi", "usedAt": "2026-11-20T16:45:00Z" },
+    { "id": "CU-011", "usedById": "WM-004", "usedByName": "Neha Gupta", "customerName": "Rajesh Malhotra", "usedAt": "2026-11-18T11:30:00Z" },
+    { "id": "CU-010", "usedById": "WM-002", "usedByName": "Sonal Kapoor", "customerName": "Kavita Reddy", "usedAt": "2026-11-15T14:00:00Z" },
+    { "id": "CU-009", "usedById": "WM-001", "usedByName": "Vikram Mehta", "customerName": "Vikram Bhatia", "usedAt": "2026-11-12T09:40:00Z" },
+    { "id": "CU-008", "usedById": "WM-005", "usedByName": "Aditya Sharma", "customerName": "Arjun Malhotra", "usedAt": "2026-11-08T13:15:00Z" },
+    { "id": "CU-007", "usedById": "WM-003", "usedByName": "Rohit Singhania", "customerName": "Nandini Chatterjee", "usedAt": "2026-11-05T10:50:00Z" },
+    { "id": "CU-006", "usedById": "WM-002", "usedByName": "Sonal Kapoor", "customerName": "Anita Desai", "usedAt": "2026-11-02T15:25:00Z" },
+    { "id": "CU-005", "usedById": "WM-001", "usedByName": "Vikram Mehta", "customerName": "Meera Nair", "usedAt": "2026-10-29T11:00:00Z" },
+    { "id": "CU-004", "usedById": "WM-004", "usedByName": "Neha Gupta", "customerName": "Prakash Jain", "usedAt": "2026-10-24T16:10:00Z" },
+    { "id": "CU-003", "usedById": "WM-001", "usedByName": "Vikram Mehta", "customerName": "Rajesh Kumar", "usedAt": "2026-10-18T12:00:00Z" },
+    { "id": "CU-002", "usedById": "WM-003", "usedByName": "Rohit Singhania", "customerName": "Suresh Agarwal", "usedAt": "2026-10-12T10:30:00Z" },
+    { "id": "CU-001", "usedById": "WM-002", "usedByName": "Sonal Kapoor", "customerName": "Dr. Lakshmi Venkataraman", "usedAt": "2026-10-06T09:15:00Z" }
+  ]
+}

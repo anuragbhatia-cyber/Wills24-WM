@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, GripVertical, Maximize2, Monitor, Smartphone, Tablet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { ViewerToggle } from '@/components/ViewerToggle'
 import { FullPreviewSidebar } from '@/components/FullPreviewSidebar'
 import { findPreviewItem, buildViewParam } from '@/lib/preview-helpers'
 
@@ -163,6 +164,7 @@ export function FullPreviewPage() {
             <span className="text-xs text-stone-500 dark:text-stone-400 font-mono w-10 text-right">
               {Math.round(widthPercent)}%
             </span>
+            <ViewerToggle />
             <ThemeToggle />
             <a
               href={fullscreenUrl}

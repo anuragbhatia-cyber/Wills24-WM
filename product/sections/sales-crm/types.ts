@@ -1,3 +1,5 @@
+import type { TeamScope, TeamViewer } from '../team/types'
+
 // =============================================================================
 // Data Types
 // =============================================================================
@@ -144,6 +146,10 @@ export interface SalesCRMProps {
   wealthManagers: WealthManager[]
   /** Count badges for status tabs */
   statusCounts: StatusCounts
+  /** Signed-in wealth manager; enables team scope and the Added by column */
+  viewer?: TeamViewer
+  /** Called when an admin wealth manager switches between Team, Mine or one team member */
+  onScopeChange?: (scope: TeamScope) => void
   /** Called when user wants to view a lead's details */
   onViewLead?: (id: string) => void
   /** Called when user wants to edit a lead */

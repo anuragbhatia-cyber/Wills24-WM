@@ -41,6 +41,9 @@ import type {
   CasePriority,
   CaseKpiStats,
 } from '@/../product/sections/case-management/types'
+import type { TeamScope } from '@/../product/sections/team/types'
+import { ScopeSwitch, AddedBy } from '@/sections/team/components/ScopeSwitch'
+import { filterByScope, isAdminWM, ownerOptions } from '@/sections/team/components/scope'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -106,8 +109,24 @@ export function CaseList({
   statusCounts,
   onView,
   onEdit,
+  viewer,
+  onScopeChange,
 }: CaseListProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('all')
+
+  // Team scope: admin wealth manager picks Team / Mine / one member; a team member sees only their own
+  const isAdmin = isAdminWM(viewer)
+  const [scope, setScope] = useState<TeamScope>('team')
+  const [filterOwner, setFilterOwner] = useState('')
+  function changeScope(next: TeamScope) {
+    setScope(next)
+    setFilterOwner('')
+    onScopeChange?.(next)
+  }
+  const scopedCases = useMemo(
+    () => filterByScope(cases, (c) => c.wealthManagerId, viewer, scope),
+    [cases, viewer, scope],
+  )
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebounce(search, 250)
   const [openMenu, setOpenMenu] = useState<string | null>(null)
@@ -154,7 +173,8 @@ export function CaseList({
   }, [cases])
 
   const activeFilterCount =
-    (filterLawyer ? 1 : 0) + (filterServiceType ? 1 : 0)
+    (filterLawyer ? 1 : 0) + (filterServiceType ? 1 : 0) + (filterOwner ? 1 : 0)
+  const filterOwnerLabel = ownerOptions(viewer).find((o) => o.id === filterOwner)?.name
   const hasActiveFilters = activeFilterCount > 0
 
   // Modal state
@@ -200,7 +220,7 @@ export function CaseList({
   // --- Filter & Sort --------------------------------------------------------
 
   const filtered = useMemo(() => {
-    let list = cases
+    let list = scopedCases
 
     if (activeTab !== 'all') list = list.filter((c) => getStatus(c) === activeTab)
 
@@ -219,6 +239,7 @@ export function CaseList({
 
     if (filterLawyer) list = list.filter((c) => c.assignedLawyer === filterLawyer)
     if (filterServiceType) list = list.filter((c) => c.serviceType === filterServiceType)
+    if (filterOwner) list = list.filter((c) => c.wealthManagerId === filterOwner)
 
     list = [...list].sort((a, b) => {
       let cmp = 0
@@ -237,17 +258,28 @@ export function CaseList({
     })
 
     return list
-  }, [cases, activeTab, debouncedSearch, sortKey, sortDir, filterLawyer, filterServiceType, statusOverrides])
+  }, [scopedCases, activeTab, debouncedSearch, sortKey, sortDir, filterLawyer, filterServiceType, filterOwner, statusOverrides])
 
   // Override-aware status counts (so tab badges reflect bulk moves)
   const effectiveStatusCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: cases.length }
-    cases.forEach((c) => {
+    const counts: Record<string, number> = { all: scopedCases.length }
+    scopedCases.forEach((c) => {
       const s = getStatus(c)
       counts[s] = (counts[s] ?? 0) + 1
     })
     return counts
-  }, [cases, statusOverrides])
+  }, [scopedCases, statusOverrides])
+
+  // KPI cards follow the scope when a viewer is set
+  const kpis = viewer
+    ? {
+        ...kpiStats,
+        totalCases: scopedCases.length,
+        activeCases: effectiveStatusCounts['in-progress'] ?? 0,
+        completedCases: effectiveStatusCounts['completed'] ?? 0,
+        onHold: effectiveStatusCounts['on-hold'] ?? 0,
+      }
+    : kpiStats
 
   // Bulk-select helpers
   const allFilteredSelected =
@@ -260,7 +292,7 @@ export function CaseList({
   const [pageSize, setPageSize] = useState(25)
   useEffect(() => {
     setPage(1)
-  }, [debouncedSearch, filterLawyer, filterServiceType, activeTab, pageSize])
+  }, [debouncedSearch, filterLawyer, filterServiceType, filterOwner, activeTab, pageSize, scope])
   const pagedCases = useMemo(() => {
     const start = (page - 1) * pageSize
     return filtered.slice(start, start + pageSize)
@@ -362,16 +394,21 @@ export function CaseList({
     else { setSortKey(key); setSortDir('desc') }
   }
 
+  const gridCols = isAdmin
+    ? 'grid-cols-[40px_100px_minmax(140px,1.5fr)_minmax(120px,1fr)_minmax(110px,1fr)_90px_80px_48px]'
+    : 'grid-cols-[40px_100px_minmax(140px,1.5fr)_minmax(120px,1fr)_90px_80px_48px]'
+
   if (isLoading) return <ListSkeleton kpis={4} rows={6} />
 
   return (
     <div className="space-y-6 pb-8">
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 tracking-tight">
             All Cases
           </h1>
+          <ScopeSwitch viewer={viewer} value={scope} onChange={changeScope} />
         </div>
         <div className="flex items-center gap-2 mt-3 sm:mt-0">
           <button className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-neutral-600 dark:text-neutral-300 border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800 rounded-lg hover:border-neutral-300 hover:bg-neutral-50 dark:hover:border-neutral-600 dark:hover:bg-neutral-700 transition-all cursor-pointer">
@@ -386,35 +423,35 @@ export function CaseList({
         <KpiCard
           icon={<Briefcase size={16} />}
           label="Total Cases"
-          value={kpiStats.totalCases}
+          value={kpis.totalCases}
           iconBg="bg-yellow-100 dark:bg-yellow-900/40"
           iconColor="text-yellow-600 dark:text-yellow-400"
         />
         <KpiCard
           icon={<Clock size={16} />}
           label="Active"
-          value={kpiStats.activeCases}
+          value={kpis.activeCases}
           iconBg="bg-blue-100 dark:bg-blue-900/40"
           iconColor="text-blue-600 dark:text-blue-400"
         />
         <KpiCard
           icon={<CheckCircle2 size={16} />}
           label="Completed"
-          value={kpiStats.completedCases}
+          value={kpis.completedCases}
           iconBg="bg-emerald-100 dark:bg-emerald-900/40"
           iconColor="text-emerald-600 dark:text-emerald-400"
         />
         <KpiCard
           icon={<TrendingUp size={16} />}
           label="Avg. Resolution"
-          value={`${kpiStats.avgResolutionDays}d`}
+          value={`${kpis.avgResolutionDays}d`}
           iconBg="bg-violet-100 dark:bg-violet-900/40"
           iconColor="text-violet-600 dark:text-violet-400"
         />
         <KpiCard
           icon={<Pause size={16} />}
           label="On Hold"
-          value={kpiStats.onHold}
+          value={kpis.onHold}
           iconBg="bg-neutral-200 dark:bg-neutral-700"
           iconColor="text-neutral-500 dark:text-neutral-400"
         />
@@ -506,8 +543,20 @@ export function CaseList({
               </button>
             </span>
           )}
+          {filterOwner && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-yellow-200 bg-yellow-50 px-2 py-0.5 text-[11px] font-medium text-yellow-700 dark:border-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300">
+              Added by: {filterOwnerLabel}
+              <button
+                onClick={() => setFilterOwner('')}
+                className="ml-0.5 inline-flex items-center justify-center rounded-full p-0.5 hover:bg-yellow-100 dark:hover:bg-yellow-900/40 cursor-pointer"
+                aria-label={`Clear filter Added by: ${filterOwnerLabel}`}
+              >
+                <X size={10} />
+              </button>
+            </span>
+          )}
           <button
-            onClick={() => { setFilterLawyer(''); setFilterServiceType('') }}
+            onClick={() => { setFilterLawyer(''); setFilterServiceType(''); setFilterOwner('') }}
             className="ml-1 text-[11px] font-medium text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 cursor-pointer"
           >
             Clear all
@@ -555,9 +604,30 @@ export function CaseList({
             </div>
           </div>
 
+          {isAdmin && (
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-400">
+                Added by
+              </span>
+              <div className="relative">
+                <select
+                  value={filterOwner}
+                  onChange={(e) => setFilterOwner(e.target.value)}
+                  className="h-[30px] appearance-none rounded-md border border-neutral-200 bg-white pl-2.5 pr-7 text-[12px] text-neutral-700 outline-none focus:border-yellow-300 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+                >
+                  <option value="">Anyone</option>
+                  {ownerOptions(viewer).map((o) => (
+                    <option key={o.id} value={o.id}>{o.name}</option>
+                  ))}
+                </select>
+                <ChevronDown size={12} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400" />
+              </div>
+            </div>
+          )}
+
           {hasActiveFilters && (
             <button
-              onClick={() => { setFilterLawyer(''); setFilterServiceType('') }}
+              onClick={() => { setFilterLawyer(''); setFilterServiceType(''); setFilterOwner('') }}
               className="ml-auto flex items-center gap-1 text-[11px] font-medium text-yellow-600 hover:text-yellow-700 dark:text-yellow-400 cursor-pointer"
             >
               <X size={12} />
@@ -655,7 +725,7 @@ export function CaseList({
       {/* ── Table ────────────────────────────────────────────────────────── */}
       <div className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-xs dark:shadow-none overflow-hidden">
           {/* Desktop header */}
-          <div className="hidden lg:grid grid-cols-[40px_100px_minmax(140px,1.5fr)_minmax(120px,1fr)_90px_80px_48px] gap-2 px-5 py-3 bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-800 text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 sticky top-0 z-10">
+          <div className={`hidden lg:grid ${gridCols} gap-2 px-5 py-3 bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-800 text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 sticky top-0 z-10`}>
             <span className="flex items-center">
               <button
                 onClick={toggleSelectAll}
@@ -676,6 +746,7 @@ export function CaseList({
             <span>Case ID</span>
             <SortHeader label="Customer" sortKey="customerName" current={sortKey} dir={sortDir} onSort={toggleSort} />
             <span>Service Type</span>
+            {isAdmin && <span>Added by</span>}
             <span className="text-center">Status</span>
             <SortHeader label="Updated" sortKey="lastUpdated" current={sortKey} dir={sortDir} onSort={toggleSort} />
             <span />
@@ -725,7 +796,7 @@ export function CaseList({
                 <div key={cs.id}>
                   {/* ── Desktop row ───────────────────────────────── */}
                   <div
-                    className={`hidden lg:grid grid-cols-[40px_100px_minmax(140px,1.5fr)_minmax(120px,1fr)_90px_80px_48px] gap-2 px-5 py-3.5 items-center hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors cursor-pointer ${
+                    className={`hidden lg:grid ${gridCols} gap-2 px-5 py-3.5 items-center hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors cursor-pointer ${
                       !isLast ? 'border-b border-neutral-100 dark:border-neutral-800/60' : ''
                     } ${isSelected ? 'bg-yellow-50/50 dark:bg-yellow-950/20' : ''}`}
                     onClick={() => onView?.(cs.id)}
@@ -769,6 +840,11 @@ export function CaseList({
                         {cs.serviceType.length > 22 ? cs.serviceType.slice(0, 20) + '…' : cs.serviceType}
                       </span>
                     </div>
+
+                    {/* Added by */}
+                    {isAdmin && (
+                      <AddedBy ownerId={cs.wealthManagerId} ownerName={cs.wealthManagerName} viewer={viewer} />
+                    )}
 
                     {/* Status */}
                     <div className="flex justify-center">

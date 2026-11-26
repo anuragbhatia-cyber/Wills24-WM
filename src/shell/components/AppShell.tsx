@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, UsersRound } from 'lucide-react'
 import MainNav, { type NavItem } from './MainNav'
 import UserMenu from './UserMenu'
 import QuickActionsMenu from './QuickActionsMenu'
@@ -11,7 +11,10 @@ interface AppShellProps {
   user?: { name: string; role?: string; avatarUrl?: string }
   onNavigate?: (href: string) => void
   onLogout?: () => void
+  onChangePassword?: () => void
   breadcrumbs?: Array<{ label: string; href?: string }>
+  /** Set when a team member (sub wealth manager) is signed in */
+  teamLogin?: { companyName: string }
 }
 
 export default function AppShell({
@@ -20,7 +23,9 @@ export default function AppShell({
   user,
   onNavigate,
   onLogout,
+  onChangePassword,
   breadcrumbs = [],
+  teamLogin,
 }: AppShellProps) {
   return (
     <div
@@ -71,7 +76,18 @@ export default function AppShell({
           <div className="flex items-center gap-3">
             <CommandPaletteTrigger />
             <QuickActionsMenu />
-            <UserMenu user={user} onLogout={onLogout} />
+            {teamLogin && (
+              <span
+                className="hidden items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-medium text-sky-700 md:inline-flex dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-300"
+                title={`You are signed in with a team login under ${teamLogin.companyName}`}
+              >
+                <UsersRound size={12} strokeWidth={2} />
+                Team Login
+                <span className="text-sky-400 dark:text-sky-600">·</span>
+                <span className="max-w-[200px] truncate font-normal">Part of {teamLogin.companyName}</span>
+              </span>
+            )}
+            <UserMenu user={user} onLogout={onLogout} onChangePassword={onChangePassword} teamLogin={teamLogin} />
           </div>
         </header>
 

@@ -1,8 +1,10 @@
 import data from '@/../product/sections/sales-crm/data.json'
 import { LeadsList } from './components/LeadsList'
 import { navigateToScreen } from '@/lib/preview-navigation'
+import { usePreviewViewer } from '@/lib/preview-viewer'
 
 export default function LeadsListPreview() {
+  const viewer = usePreviewViewer()
   return (
     <LeadsList
       leads={data.leads as any}
@@ -11,6 +13,8 @@ export default function LeadsListPreview() {
       services={data.services as any}
       wealthManagers={data.wealthManagers as any}
       statusCounts={data.statusCounts as any}
+      viewer={viewer}
+      onScopeChange={(scope) => console.log('Scope:', scope)}
       onViewLead={() => navigateToScreen('sales-crm', 'LeadDetail')}
       onEditLead={(id) => console.log('Edit lead:', id)}
       onDeleteLead={(id) => console.log('Delete lead:', id)}
