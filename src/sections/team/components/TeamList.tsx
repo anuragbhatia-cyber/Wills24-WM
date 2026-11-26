@@ -19,6 +19,9 @@ import {
   FileText,
   Send,
   X,
+  ArrowLeft,
+  ArrowRight,
+  Check,
 } from 'lucide-react'
 import {
   Dialog,
@@ -130,6 +133,7 @@ export function TeamList({
   const [showPassword, setShowPassword] = useState(false)
   const [access, setAccess] = useState<ModuleAccess>({ leads: 'edit', customers: 'edit', cases: 'view' })
   const [submitted, setSubmitted] = useState(false)
+  const [formStep, setFormStep] = useState<1 | 2>(1)
 
   // Confirm dialogs
   const [resetTarget, setResetTarget] = useState<TeamMember | null>(null)
@@ -200,6 +204,7 @@ export function TeamList({
     setShowPassword(false)
     setAccess(capAccess({ leads: 'edit', customers: 'edit', cases: 'view' }, parentAccess))
     setSubmitted(false)
+    setFormStep(1)
     setFormOpen(true)
   }
 
@@ -211,7 +216,14 @@ export function TeamList({
     setDesignation(member.designation)
     setAccess(capAccess(member.access, parentAccess))
     setSubmitted(false)
+    setFormStep(1)
     setFormOpen(true)
+  }
+
+  function goToAccessStep() {
+    setSubmitted(true)
+    if (!formValid) return
+    setFormStep(2)
   }
 
   function handleSubmit() {
@@ -478,7 +490,14 @@ export function TeamList({
             )}
           </DialogHeader>
 
+          <Stepper
+            current={formStep}
+            onStepClick={(target) => (target === 1 ? setFormStep(1) : goToAccessStep())}
+          />
+
           <div className="space-y-5 py-2">
+            {formStep === 1 && (
+            <>
             <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="Full name" required error={submitted && !name.trim() ? 'Enter a name' : undefined}>
                 <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} placeholder="e.g. Priya Nair" />
@@ -548,7 +567,11 @@ export function TeamList({
                 )}
               </section>
             )}
+            </>
+            )}
 
+            {formStep === 2 && (
+            <>
             <section>
               <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Module access</h3>
               <p className="mb-3 text-xs text-neutral-500 dark:text-neutral-400">
@@ -599,22 +622,39 @@ export function TeamList({
               <Inherited label="Package" value={`${sharedPackage.name} (shared)`} />
               <Inherited label="Credits left" value={`${willsLeft} of ${sharedPackage.willsIncluded}`} />
             </section>
+            </>
+            )}
           </div>
 
           <DialogFooter>
             <button
-              onClick={() => setFormOpen(false)}
-              className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800"
+              onClick={() => (formStep === 1 ? setFormOpen(false) : setFormStep(1))}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800"
             >
-              Cancel
+              {formStep === 1 ? 'Cancel' : (
+                <>
+                  <ArrowLeft size={14} />
+                  Back
+                </>
+              )}
             </button>
-            <button
-              onClick={handleSubmit}
-              disabled={submitted && !formValid}
-              className="rounded-lg bg-yellow-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-yellow-600 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {editing ? 'Save changes' : passwordMode === 'link' ? 'Add and send link' : 'Add team member'}
-            </button>
+            {formStep === 1 ? (
+              <button
+                onClick={goToAccessStep}
+                disabled={submitted && !formValid}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-yellow-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-yellow-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+                <ArrowRight size={14} />
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                className="rounded-lg bg-yellow-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-yellow-600"
+              >
+                {editing ? 'Save changes' : passwordMode === 'link' ? 'Add and send link' : 'Add team member'}
+              </button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -826,6 +866,54 @@ function ChoiceCard({ selected, onClick, icon, title, hint }: { selected: boolea
         <span className="block text-xs text-neutral-500 dark:text-neutral-400">{hint}</span>
       </span>
     </button>
+  )
+}
+
+const FORM_STEPS = [
+  { step: 1 as const, label: 'Details' },
+  { step: 2 as const, label: 'Access' },
+]
+
+function Stepper({ current, onStepClick }: { current: 1 | 2; onStepClick: (step: 1 | 2) => void }) {
+  return (
+    <ol className="flex items-center gap-3">
+      {FORM_STEPS.map(({ step, label }, i) => {
+        const done = step < current
+        const active = step === current
+        return (
+          <li key={step} className="flex flex-1 items-center gap-3 last:flex-none">
+            <button
+              type="button"
+              onClick={() => onStepClick(step)}
+              aria-current={active ? 'step' : undefined}
+              className="flex cursor-pointer items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-yellow-500/40"
+            >
+              <span
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition-colors ${
+                  done
+                    ? 'bg-yellow-500 text-white'
+                    : active
+                      ? 'bg-yellow-500 text-white ring-4 ring-yellow-500/20'
+                      : 'bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500'
+                }`}
+              >
+                {done ? <Check size={12} strokeWidth={3} /> : step}
+              </span>
+              <span
+                className={`text-sm font-medium ${
+                  active || done ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-400 dark:text-neutral-500'
+                }`}
+              >
+                {label}
+              </span>
+            </button>
+            {i < FORM_STEPS.length - 1 && (
+              <span className={`h-px flex-1 ${done ? 'bg-yellow-500' : 'bg-neutral-200 dark:bg-neutral-700'}`} />
+            )}
+          </li>
+        )
+      })}
+    </ol>
   )
 }
 
