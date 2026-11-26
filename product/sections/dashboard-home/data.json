@@ -286,5 +286,24 @@
   "user": {
     "name": "Anurag Bhatia",
     "role": "Admin"
-  }
+  },
+  "teamBreakdown": [
+    { "ownerId": "WM-001", "activeCases": 8, "completedCases": 22, "newLeads": 12, "caseStatus": { "In Progress": 4, "Drafting": 2, "Under Review": 1, "Completed": 22, "On Hold": 1 } },
+    { "ownerId": "WM-002", "activeCases": 5, "completedCases": 12, "newLeads": 8, "caseStatus": { "In Progress": 3, "Drafting": 1, "Under Review": 1, "Completed": 12, "On Hold": 0 } },
+    { "ownerId": "WM-003", "activeCases": 5, "completedCases": 11, "newLeads": 7, "caseStatus": { "In Progress": 2, "Drafting": 1, "Under Review": 1, "Completed": 11, "On Hold": 1 } },
+    { "ownerId": "WM-004", "activeCases": 5, "completedCases": 9, "newLeads": 5, "caseStatus": { "In Progress": 2, "Drafting": 1, "Under Review": 1, "Completed": 9, "On Hold": 1 } },
+    { "ownerId": "WM-005", "activeCases": 1, "completedCases": 3, "newLeads": 2, "caseStatus": { "In Progress": 1, "Drafting": 0, "Under Review": 0, "Completed": 3, "On Hold": 0 } }
+  ],
+  "teamActivityFeed": [
+    { "id": "TACT-001", "ownerId": "WM-002", "actor": "Sonal Kapoor", "actorRole": "partner", "action": "added a new lead", "entityType": "lead", "entityName": "Kavita Reddy", "entityId": "W24-LEAD-00006", "timestamp": "2026-04-17T10:20:00Z" },
+    { "id": "TACT-002", "ownerId": "WM-001", "actor": "Vikram Mehta", "actorRole": "partner", "action": "commented on Neha Gupta's case", "entityType": "case", "entityName": "Prakash Jain — Succession Certificate", "entityId": "W24-CASE-00001", "timestamp": "2026-04-17T09:45:00Z" },
+    { "id": "TACT-003", "ownerId": "WM-003", "actor": "Rohit Singhania", "actorRole": "partner", "action": "logged a follow-up meeting", "entityType": "followup", "entityName": "Nandini Chatterjee", "entityId": "W24-LEAD-00008", "timestamp": "2026-04-17T08:30:00Z" },
+    { "id": "TACT-004", "ownerId": "WM-002", "actor": "Sonal Kapoor", "actorRole": "partner", "action": "used 1 will credit", "entityType": "wallet", "entityName": "Dr. Lakshmi Venkataraman", "entityId": "WCUS-00005", "timestamp": "2026-04-16T17:10:00Z" },
+    { "id": "TACT-005", "ownerId": "WM-001", "actor": "Vikram Mehta", "actorRole": "partner", "action": "added a new customer", "entityType": "customer", "entityName": "Arvind Saxena", "entityId": "WCUS-00004", "timestamp": "2026-04-16T15:00:00Z" },
+    { "id": "TACT-006", "ownerId": "WM-004", "actor": "Neha Gupta", "actorRole": "partner", "action": "sent a quotation", "entityType": "lead", "entityName": "Prakash Jain", "entityId": "W24-LEAD-00005", "timestamp": "2026-04-16T12:40:00Z" },
+    { "id": "TACT-007", "ownerId": "WM-002", "actor": "Sonal Kapoor", "actorRole": "partner", "action": "updated case notes", "entityType": "case", "entityName": "Dr. Lakshmi Venkataraman — Will", "entityId": "W24-CASE-00008", "timestamp": "2026-04-16T11:15:00Z" },
+    { "id": "TACT-008", "ownerId": "WM-003", "actor": "Rohit Singhania", "actorRole": "partner", "action": "added a new lead", "entityType": "lead", "entityName": "Suresh Agarwal", "entityId": "W24-LEAD-00003", "timestamp": "2026-04-15T16:50:00Z" },
+    { "id": "TACT-009", "ownerId": "WM-001", "actor": "Vikram Mehta", "actorRole": "partner", "action": "used 1 will credit", "entityType": "wallet", "entityName": "Vikram Bhatia", "entityId": "WCUS-00002", "timestamp": "2026-04-15T10:05:00Z" },
+    { "id": "TACT-010", "ownerId": "WM-005", "actor": "Aditya Sharma", "actorRole": "partner", "action": "added a new lead", "entityType": "lead", "entityName": "Arjun Malhotra", "entityId": "W24-LEAD-00007", "timestamp": "2026-04-14T14:30:00Z" }
+  ]
 }

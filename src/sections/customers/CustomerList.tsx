@@ -3,6 +3,7 @@ import data from '@/../product/sections/customers/data.json'
 import { CustomerList } from './components/CustomerList'
 import { navigateToScreen } from '@/lib/preview-navigation'
 import { toast } from '@/components/ui/toaster'
+import { usePreviewViewer } from '@/lib/preview-viewer'
 import type { Customer, KpiStats, StatusCounts } from '@/../product/sections/customers/types'
 
 /**
@@ -12,6 +13,7 @@ import type { Customer, KpiStats, StatusCounts } from '@/../product/sections/cus
  */
 export default function CustomerListPreview() {
   const [customers, setCustomers] = useState<Customer[]>(data.customers as Customer[])
+  const viewer = usePreviewViewer()
 
   const kpiStats = useMemo<KpiStats>(() => ({
     totalCustomers: customers.length,
@@ -36,9 +38,11 @@ export default function CustomerListPreview() {
       onSendQuotation={(id) => console.log('Send quotation:', id)}
       onViewCases={() => navigateToScreen('case-management', 'CaseList')}
       onViewDocuments={(id) => console.log('View documents:', id)}
+      viewer={viewer}
+      onScopeChange={(scope) => console.log('Scope:', scope)}
       onCreate={(customer) => {
         setCustomers((prev) => [customer, ...prev])
-        toast.success('Customer added', `${customer.name} added to your customer list`)
+        toast.success('Customer added', `${customer.name} added for ${customer.wealthManagerId === viewer.wealthManagerId ? 'you' : customer.wealthManagerName}`)
       }}
     />
   )

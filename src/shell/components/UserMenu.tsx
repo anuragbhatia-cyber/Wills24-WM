@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, LogOut } from 'lucide-react'
+import { ChevronDown, KeyRound, LogOut, UsersRound } from 'lucide-react'
 
 interface UserMenuProps {
   user?: {
@@ -8,9 +8,12 @@ interface UserMenuProps {
     avatarUrl?: string
   }
   onLogout?: () => void
+  onChangePassword?: () => void
+  /** Set when a team member (sub wealth manager) is signed in */
+  teamLogin?: { companyName: string }
 }
 
-export default function UserMenu({ user, onLogout }: UserMenuProps) {
+export default function UserMenu({ user, onLogout, onChangePassword, teamLogin }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -71,8 +74,24 @@ export default function UserMenu({ user, onLogout }: UserMenuProps) {
             <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
               {user?.role || 'Product Manager'}
             </p>
+            {teamLogin && (
+              <p className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-sky-600 md:hidden dark:text-sky-400">
+                <UsersRound size={11} />
+                Team Login · Part of {teamLogin.companyName}
+              </p>
+            )}
           </div>
           <div className="py-1">
+            <button
+              onClick={() => {
+                setIsOpen(false)
+                onChangePassword?.()
+              }}
+              className="flex w-full items-center gap-2.5 px-4 py-2 text-[13px] text-neutral-700 transition-colors hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-700/50"
+            >
+              <KeyRound size={15} strokeWidth={1.5} />
+              Change password
+            </button>
             <button
               onClick={() => {
                 setIsOpen(false)

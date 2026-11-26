@@ -7,6 +7,8 @@ import { loadScreenDesignComponent, sectionUsesShell } from '@/lib/section-loade
 import { loadAppShell, hasShellComponents, loadShellInfo } from '@/lib/shell-loader'
 import { loadProductData } from '@/lib/product-loader'
 import { navigateToSection } from '@/lib/preview-navigation'
+import { usePreviewViewer } from '@/lib/preview-viewer'
+import { ViewerToggle } from '@/components/ViewerToggle'
 import LoginPage from '@/sections/dashboard-home/components/LoginPage'
 import React from 'react'
 
@@ -134,6 +136,7 @@ export function ScreenDesignPage() {
             <span className="text-xs text-stone-500 dark:text-stone-400 font-mono w-10 text-right">
               {Math.round(widthPercent)}%
             </span>
+            <ViewerToggle />
             <ThemeToggle />
             <a
               href={`/sections/${sectionId}/screen-designs/${screenDesignName}/fullscreen`}
@@ -267,7 +270,9 @@ export function ScreenDesignFullscreen() {
                 return {
                   label,
                   href,
-                  isActive: sectionId ? href === `/${sectionId}` : false,
+                  isActive: sectionId
+                    ? href === `/${sectionId}` || (href === '/employees' && sectionId === 'team-management')
+                    : false,
                 }
               })
             : [
@@ -276,16 +281,24 @@ export function ScreenDesignFullscreen() {
                 { label: 'Settings', href: '/settings' },
               ]
 
+          // Preview "signed in as": admin wealth manager or team member
+          const viewer = usePreviewViewer()
+          const isTeamLogin = viewer.role === 'sub-wm'
+          const visibleNavItems = isTeamLogin
+            ? navigationItems.filter((item) => item.href !== '/team')
+            : navigationItems
+
           const defaultUser = {
-            name: 'Anurag Bhatia',
-            role: 'Product Manager',
+            name: viewer.name,
+            role: isTeamLogin ? 'Team member' : 'Admin Wealth Manager',
           }
 
           // Pass props dynamically - the shell component decides what it needs
           return (
             <ShellComponent
-              navigationItems={navigationItems}
+              navigationItems={visibleNavItems}
               user={defaultUser}
+              teamLogin={isTeamLogin ? { companyName: viewer.companyName } : undefined}
               onNavigate={(href: string) => navigateToSection(href)}
               onLogout={() => externalLogout?.()}
             >

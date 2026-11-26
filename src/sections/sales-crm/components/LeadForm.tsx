@@ -16,6 +16,8 @@ import type {
   LeadType,
   WealthManager,
 } from '@/../product/sections/sales-crm/types'
+import type { TeamViewer } from '@/../product/sections/team/types'
+import { ownerOptions } from '@/sections/team/components/scope'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -32,6 +34,12 @@ export interface LeadFormProps {
   onSave?: (data: Partial<Lead>) => void
   /** Called when the user cancels */
   onCancel?: () => void
+  /**
+   * Signed-in wealth manager. Replaces the wealth manager dropdown with an owner
+   * picker (admin wealth manager, defaults to themselves) or tags the lead to the
+   * signed-in team member automatically.
+   */
+  viewer?: TeamViewer
 }
 
 // ---------------------------------------------------------------------------
@@ -78,6 +86,7 @@ export function LeadForm({
   employees = [],
   onSave,
   onCancel,
+  viewer,
 }: LeadFormProps) {
   const isEdit = !!lead
 
@@ -97,7 +106,7 @@ export function LeadForm({
     source: lead?.source ?? ('' as string),
     leadType: lead?.leadType ?? ('' as string),
     serviceInterest: lead?.serviceInterest ?? '',
-    wealthManagerId: lead?.wealthManagerId ?? '',
+    wealthManagerId: lead?.wealthManagerId ?? viewer?.wealthManagerId ?? '',
     assignedEmployee: lead?.assignedEmployee ?? '',
     notes: lead?.notes ?? '',
     attachments: [] as string[],
@@ -106,15 +115,31 @@ export function LeadForm({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
 
-  // Derived
+  // Derived — with a viewer, the choices are the viewer and their active team members
+  const ownerList = useMemo<WealthManager[]>(
+    () =>
+      viewer
+        ? ownerOptions(viewer).map((o) => ({
+            id: o.id,
+            name: o.name,
+            email: '',
+            phone: '',
+            company: viewer.companyName,
+            totalSales: 0,
+            isActive: o.status !== 'inactive',
+          }))
+        : wealthManagers,
+    [viewer, wealthManagers]
+  )
+
   const activeWealthManagers = useMemo(
-    () => wealthManagers.filter((wm) => wm.isActive),
-    [wealthManagers]
+    () => ownerList.filter((wm) => wm.isActive),
+    [ownerList]
   )
 
   const selectedWM = useMemo(
-    () => wealthManagers.find((wm) => wm.id === form.wealthManagerId),
-    [wealthManagers, form.wealthManagerId]
+    () => (viewer ? undefined : wealthManagers.find((wm) => wm.id === form.wealthManagerId)),
+    [viewer, wealthManagers, form.wealthManagerId]
   )
 
   // Handlers
@@ -177,7 +202,11 @@ export function LeadForm({
     if (!validateStep(3) || isSubmitting) return
     setIsSubmitting(true)
     setTimeout(() => {
-      const wmName = wealthManagers.find((wm) => wm.id === form.wealthManagerId)?.name ?? ''
+      const wmName = viewer
+        ? form.wealthManagerId === viewer.wealthManagerId
+          ? viewer.name
+          : viewer.teamMembers.find((m) => m.id === form.wealthManagerId)?.name ?? viewer.name
+        : wealthManagers.find((wm) => wm.id === form.wealthManagerId)?.name ?? ''
       onSave?.({
         ...form,
         source: form.source as LeadSource,
@@ -470,8 +499,15 @@ export function LeadForm({
             >
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  {viewer?.role === 'sub-wm' ? (
+                    <FormField label="Owner">
+                      <p className="rounded-lg bg-neutral-50 px-3 py-2.5 text-[12px] text-neutral-500 dark:bg-neutral-800/60 dark:text-neutral-400">
+                        This lead will be added under your name.
+                      </p>
+                    </FormField>
+                  ) : (
                   <FormField
-                    label="Wealth Manager"
+                    label={viewer ? 'Owner' : 'Wealth Manager'}
                     error={touched.wealthManagerId ? errors.wealthManagerId : undefined}
                   >
                     <select
@@ -480,14 +516,20 @@ export function LeadForm({
                       onBlur={() => markTouched('wealthManagerId')}
                       className={selectClass(touched.wealthManagerId && !!errors.wealthManagerId)}
                     >
-                      <option value="">Select wealth manager</option>
+                      {!viewer && <option value="">Select wealth manager</option>}
                       {activeWealthManagers.map((wm) => (
                         <option key={wm.id} value={wm.id}>
-                          {wm.name} — {wm.company}
+                          {viewer ? wm.name : `${wm.name} — ${wm.company}`}
                         </option>
                       ))}
                     </select>
                   </FormField>
+                  )}
+                  {viewer?.role === 'admin-wm' && (
+                    <p className="mt-1.5 text-[11px] text-neutral-400">
+                      Add on behalf of a team member, or keep it as yours.
+                    </p>
+                  )}
 
                   {selectedWM && (
                     <div className="mt-2.5 flex items-center gap-3 rounded-lg border border-yellow-100 bg-yellow-50/50 px-3 py-2.5 dark:border-yellow-900/30 dark:bg-yellow-950/20">

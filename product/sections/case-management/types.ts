@@ -1,3 +1,5 @@
+import type { TeamScope, TeamViewer } from '../team/types'
+
 // =============================================================================
 // Data Types
 // =============================================================================
@@ -56,6 +58,9 @@ export interface Case {
   id: string
   customerId: string
   customerName: string
+  /** Owner: the admin wealth manager or team member who owns the customer */
+  wealthManagerId: string
+  wealthManagerName: string
   serviceType: string
   serviceName: string
   assignedLawyer: string
@@ -195,6 +200,10 @@ export interface CaseListProps {
   onEdit?: (id: string) => void
   /** Called when user wants to create a new case */
   onCreate?: () => void
+  /** Signed-in wealth manager; enables team scope and the Added by column */
+  viewer?: TeamViewer
+  /** Called when an admin wealth manager switches between Team, Mine or one team member */
+  onScopeChange?: (scope: TeamScope) => void
 }
 
 export interface CaseDetailProps {

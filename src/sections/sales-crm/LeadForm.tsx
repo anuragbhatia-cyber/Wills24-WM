@@ -2,6 +2,7 @@ import data from '@/../product/sections/sales-crm/data.json'
 import { LeadForm } from './components/LeadForm'
 import { navigateToScreen } from '@/lib/preview-navigation'
 import { toast } from '@/components/ui/toaster'
+import { usePreviewViewer } from '@/lib/preview-viewer'
 
 /**
  * Preview wrapper for Design OS.
@@ -9,6 +10,7 @@ import { toast } from '@/components/ui/toaster'
  * To preview edit mode, pass a lead from the data.
  */
 export default function LeadFormPreview() {
+  const viewer = usePreviewViewer()
   // Derive employee list from leads data
   const employees = [...new Set(data.leads.map((l) => l.assignedEmployee).filter(Boolean))].sort()
 
@@ -16,6 +18,7 @@ export default function LeadFormPreview() {
     <LeadForm
       wealthManagers={data.wealthManagers as any}
       employees={employees}
+      viewer={viewer}
       onSave={(lead) => {
         toast.success('Lead created', lead?.name ? `${lead.name} added to your pipeline` : undefined)
         navigateToScreen('sales-crm', 'LeadsList')
