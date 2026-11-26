@@ -445,10 +445,7 @@ export function TeamList({
       {/* ── Credit usage ────────────────────────────────────────────────── */}
       <div className="rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-3.5 dark:border-neutral-800">
-          <div>
-            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">Credit usage</h2>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">Every will credit drawn from the shared package, and who used it</p>
-          </div>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">Credit usage</h2>
           <span className="text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
             {sharedPackage.willsUsed} used · valid until {formatDate(sharedPackage.validUntil)}
           </span>
